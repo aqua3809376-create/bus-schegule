@@ -1,0 +1,26 @@
+{
+  "name": "교대 근무 순번 계산기",
+  "short_name": "근무순번",
+  "description": "동진여객 교대 근무 순번 자동 계산기",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1c3d5a",
+  "theme_color": "#1c3d5a",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
