@@ -11,6 +11,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="근무순번">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
 <style>
   :root{
     --navy:#1c3d5a;
@@ -74,6 +77,11 @@
   }
   .header h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.3px;}
   .header .sub{font-size:13px;opacity:0.75;margin-top:3px;}
+  .header .sub .credit{
+    font-family:'Dancing Script', cursive;
+    font-size:17px;margin-left:8px;opacity:0.95;color:var(--amber);
+    font-weight:600;vertical-align:middle;
+  }
   .badge{
     background:var(--amber);color:#3a2600;font-weight:700;font-size:13px;
     padding:5px 10px;border-radius:999px;
@@ -191,7 +199,10 @@
     text-stroke:1px var(--red);
     vertical-align:middle;
   }
-  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-size:13.5px;color:var(--muted);}
+  .legend-box{margin-top:10px;}
+  .legend-box summary{list-style:none;}
+  .legend-box summary::-webkit-details-marker{display:none;}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:13.5px;color:var(--muted);}
   .legend span{display:inline-flex;align-items:center;gap:5px;}
   .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
   .footer-note{
@@ -200,33 +211,38 @@
   }
   /* ===== 폰 화면 대응 (폭 600px 이하) ===== */
   @media (max-width: 600px){
-    body{padding:8px;}
-    .header{padding:14px 16px;}
-    .header h1{font-size:18px;}
-    .panel{padding:12px;border-radius:12px;}
-    table.cal th{font-size:12px;padding:5px 0;}
-    table.cal td{height:78px;padding:3px 2px;font-size:11px;}
-    .dnum{font-size:15px;margin-bottom:2px;}
-    .status{font-size:13px;margin-bottom:1px;}
-    .num-base{font-size:13px;}
-    .num-changed{font-size:13px;}
-    .rest-veh{font-size:11px;}
-    .day-emoji{font-size:14px;margin-left:2px;}
-    .holi-name{font-size:8.5px;margin-left:1px;}
-    .memo{font-size:11px;}
-    .memo-add{font-size:10px;}
-    .star3{font-size:16px;margin-left:1px;}
-    .month-nav .mtitle{font-size:19px;}
-    .month-nav button{width:40px;height:40px;font-size:20px;}
-    .legend{font-size:11.5px;gap:8px;}
+    body{padding:6px;}
+    .header{padding:10px 14px;margin-bottom:8px;}
+    .header h1{font-size:17px;}
+    .header .sub{font-size:12px;margin-top:1px;}
+    .header .sub .credit{font-size:15px;}
+    .panel{padding:8px;border-radius:12px;margin-bottom:8px;}
+    .month-nav{margin-bottom:6px;}
+    table.cal th{font-size:12px;padding:3px 0;}
+    table.cal td{height:60px;padding:2px 2px;font-size:11px;}
+    .cell-inner{gap:0;}
+    .dnum{font-size:14px;margin-bottom:1px;}
+    .status{font-size:12.5px;margin-bottom:0;}
+    .num-base{font-size:12.5px;line-height:1.15;}
+    .num-changed{font-size:12.5px;line-height:1.15;}
+    .rest-veh{font-size:10.5px;margin-top:0;}
+    .day-emoji{font-size:13px;margin-left:2px;}
+    .holi-name{font-size:8px;margin-left:1px;}
+    .memo{font-size:10px;padding-top:1px;}
+    .memo-add{font-size:9px;padding-top:1px;}
+    .star3{font-size:15px;margin-left:1px;}
+    .month-nav .mtitle{font-size:18px;}
+    .month-nav button{width:38px;height:38px;font-size:19px;}
+    .legend{font-size:11px;gap:7px;margin-top:8px;}
   }
   /* 아주 작은 폰 (폭 380px 이하) */
   @media (max-width: 380px){
-    table.cal td{height:70px;font-size:10px;}
+    table.cal td{height:54px;font-size:10px;}
     .dnum{font-size:13px;}
-    .status{font-size:12px;}
-    .num-base,.num-changed{font-size:12px;}
-    .day-emoji{font-size:13px;}
+    .status{font-size:11.5px;}
+    .num-base,.num-changed{font-size:11.5px;}
+    .day-emoji{font-size:12px;}
+    .rest-veh{font-size:10px;}
   }
 </style>
 </head>
@@ -249,7 +265,7 @@
   <div class="header">
     <div>
       <h1>🚌 교대 근무 순번 계산기</h1>
-      <div class="sub">동진여객</div>
+      <div class="sub">동진여객 <span class="credit">Created by Juyoung Hwang</span></div>
     </div>
     <button class="gear-btn" id="gearBtn" title="환경설정">⚙</button>
   </div>
@@ -345,14 +361,17 @@
       </tr></thead>
       <tbody id="calBody"></tbody>
     </table>
-    <div class="legend">
-      <span><span class="dot" style="background:var(--green)"></span>오전 근무</span>
-      <span><span class="dot" style="background:var(--violet)"></span>오후 근무</span>
-      <span><span class="dot" style="background:var(--red)"></span>휴무 / 감차(감차1·2·3…)</span>
-      <span><span class="num-base" style="font-size:12px;">7번</span> = 원래 순번 (검은색)</span>
-      <span><span class="num-changed" style="font-size:12px;">5번</span> = 감차로 바뀐 순번 (빨간색)</span>
-      <span><span class="star3" style="font-size:17px;">★</span> = 3회 운행 (없으면 2회)</span>
-    </div>
+    <details class="legend-box">
+      <summary style="cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:600;">🔎 표시 설명 (색·별·순번)</summary>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--green)"></span>오전 근무</span>
+        <span><span class="dot" style="background:var(--violet)"></span>오후 근무</span>
+        <span><span class="dot" style="background:var(--red)"></span>휴무 / 감차(감차1·2·3…)</span>
+        <span><span class="num-base" style="font-size:12px;">7번</span> = 원래 순번 (검은색)</span>
+        <span><span class="num-changed" style="font-size:12px;">5번</span> = 감차로 바뀐 순번 (빨간색)</span>
+        <span><span class="star3" style="font-size:17px;">★</span> = 3회 운행 (없으면 2회)</span>
+      </div>
+    </details>
   </div>
 
   <details class="footer-note">
@@ -1123,14 +1142,40 @@ function render(){
   document.getElementById('calBody').innerHTML = html;
 }
 
-document.getElementById('prevBtn').addEventListener('click', () => {
+function goPrevMonth(){
   viewMonth--; if(viewMonth < 0){ viewMonth = 11; viewYear--; }
   render();
-});
-document.getElementById('nextBtn').addEventListener('click', () => {
+}
+function goNextMonth(){
   viewMonth++; if(viewMonth > 11){ viewMonth = 0; viewYear++; }
   render();
-});
+}
+document.getElementById('prevBtn').addEventListener('click', goPrevMonth);
+document.getElementById('nextBtn').addEventListener('click', goNextMonth);
+
+// ===================== 좌우 스와이프로 달 넘기기 (갤럭시 캘린더 방식) =====================
+(function(){
+  const cal = document.querySelector('table.cal');
+  if(!cal) return;
+  let startX = 0, startY = 0, tracking = false;
+  cal.addEventListener('touchstart', (e) => {
+    if(e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = true;
+  }, {passive:true});
+  cal.addEventListener('touchend', (e) => {
+    if(!tracking) return;
+    tracking = false;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    // 가로 이동이 세로보다 크고 충분히 밀었을 때만 (세로 스크롤과 구분)
+    if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5){
+      if(dx < 0) goNextMonth();   // 왼쪽으로 밀기 → 다음 달
+      else goPrevMonth();          // 오른쪽으로 밀기 → 이전 달
+    }
+  }, {passive:true});
+})();
 
 ['vehicle','anchorDate','anchorStatus','summerStart','summerEnd','winterStart','winterEnd','extraHolidays']
   .forEach(id => document.getElementById(id).addEventListener('change', () => { saveState(); render(); }));
