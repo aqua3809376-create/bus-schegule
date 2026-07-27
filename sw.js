@@ -1,6 +1,6 @@
 // 교대 근무 순번 계산기 - Service Worker
 // 앱을 캐싱해서 오프라인(지하철·터널 등)에서도 열리게 함
-const CACHE_NAME = 'geuntae-v5';
+const CACHE_NAME = 'geuntae-v6';
 const ASSETS = [
   './',
   './index.html',
