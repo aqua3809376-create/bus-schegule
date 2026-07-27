@@ -136,6 +136,14 @@
   }
   /* 셀 내부를 세로 flex로: 메모를 맨 아래에 고정 */
   .cell-inner{display:flex;flex-direction:column;height:100%;}
+  /* 상단 클릭 영역 (날짜·상태·순번) → 이모티콘 팝업 */
+  .cell-tap{cursor:pointer;}
+  /* 오전/오후 + 이모티콘을 한 줄에 (줄바꿈 없음) */
+  .status-row{
+    display:flex;align-items:center;gap:3px;
+    margin-bottom:3px;white-space:nowrap;overflow:visible;
+  }
+  .status-row .status{margin-bottom:0;}
   .memo{
     font-size:14px;color:var(--red);font-weight:700;
     line-height:1.35;word-break:break-word;cursor:pointer;
@@ -148,9 +156,9 @@
   .memo-add:hover{color:var(--amber);}
   td.empty{background:var(--paper);border:1px solid var(--line);}
   td.today{outline:3px solid var(--amber);outline-offset:-3px;}
-  .dnum{font-size:19px;font-weight:800;margin-bottom:3px;cursor:pointer;}
-  /* 날짜칸 이모티콘 (스티커) */
-  .day-emoji{font-size:18px;margin-left:4px;vertical-align:middle;}
+  .dnum{font-size:19px;font-weight:800;margin-bottom:3px;}
+  /* 이모티콘: 오전/오후 글씨 크기와 동일, 둘째 줄에 표시 */
+  .day-emoji{font-size:20px;line-height:1;flex-shrink:0;}
   /* 이모티콘 선택 팝업 (화면 중앙 고정) */
   .emoji-picker{
     position:fixed;z-index:100;background:#fff;border:1px solid var(--line);
@@ -172,7 +180,9 @@
   /* 공휴일 날짜 빨간색 + 명칭 */
   .dnum.holiday{color:var(--red);}
   .holi-name{font-size:10.5px;color:var(--red);font-weight:700;margin-left:3px;vertical-align:middle;}
-  .status{font-weight:800;font-size:18px;margin-bottom:3px;}
+  /* 토요일 음력 날짜 (작게, 파란 계열) */
+  .lunar-name{font-size:9.5px;color:#7a95b0;font-weight:600;margin-left:3px;vertical-align:middle;}
+  .status{font-weight:800;font-size:20px;margin-bottom:3px;}
   .status.am{color:var(--green);}
   .status.pm{color:var(--violet);}
   .status.off{color:var(--red);}
@@ -191,9 +201,9 @@
   .rest-veh{
     font-size:13px;color:var(--red);font-weight:800;margin-top:2px;
   }
-  /* 3회 운행 표시: 투명 별에 붉은 윤곽선, 칸의 20% 이내 */
+  /* 3회 운행 표시: 투명 별에 붉은 윤곽선, 순번 글자와 동일 크기 */
   .star3{
-    display:inline-block;margin-left:3px;font-size:19px;line-height:1;
+    display:inline-block;margin-left:3px;font-size:15px;line-height:1;
     color:transparent;
     -webkit-text-stroke:1px var(--red);
     text-stroke:1px var(--red);
@@ -219,29 +229,32 @@
     .panel{padding:8px;border-radius:12px;margin-bottom:8px;}
     .month-nav{margin-bottom:6px;}
     table.cal th{font-size:12px;padding:3px 0;}
-    table.cal td{height:60px;padding:2px 2px;font-size:11px;}
+    table.cal td{height:62px;padding:2px 2px;font-size:11px;}
     .cell-inner{gap:0;}
+    .status-row{gap:2px;margin-bottom:1px;}
     .dnum{font-size:14px;margin-bottom:1px;}
-    .status{font-size:12.5px;margin-bottom:0;}
+    .status{font-size:14px;margin-bottom:0;}
     .num-base{font-size:12.5px;line-height:1.15;}
     .num-changed{font-size:12.5px;line-height:1.15;}
     .rest-veh{font-size:10.5px;margin-top:0;}
-    .day-emoji{font-size:13px;margin-left:2px;}
+    .day-emoji{font-size:14px;}
     .holi-name{font-size:8px;margin-left:1px;}
+    .lunar-name{font-size:7.5px;margin-left:1px;}
     .memo{font-size:10px;padding-top:1px;}
     .memo-add{font-size:9px;padding-top:1px;}
-    .star3{font-size:15px;margin-left:1px;}
+    .star3{font-size:12.5px;margin-left:1px;}
     .month-nav .mtitle{font-size:18px;}
     .month-nav button{width:38px;height:38px;font-size:19px;}
     .legend{font-size:11px;gap:7px;margin-top:8px;}
   }
   /* 아주 작은 폰 (폭 380px 이하) */
   @media (max-width: 380px){
-    table.cal td{height:54px;font-size:10px;}
+    table.cal td{height:56px;font-size:10px;}
     .dnum{font-size:13px;}
-    .status{font-size:11.5px;}
+    .status{font-size:13px;}
+    .day-emoji{font-size:13px;}
     .num-base,.num-changed{font-size:11.5px;}
-    .day-emoji{font-size:12px;}
+    .star3{font-size:11.5px;}
     .rest-veh{font-size:10px;}
   }
 </style>
@@ -597,24 +610,28 @@ function getHolidaySet(){
   return new Set([...BASE_HOLIDAYS_2026, ...extra]);
 }
 
-// 공휴일 명칭 (3자 이내). 월-일 형식 키(연도 무관 반복) + 특정일자 키.
+// 공휴일 명칭 (2자). 월-일 형식 키(연도 무관 반복) + 특정일자 키.
 const HOLIDAY_NAMES_MMDD = {
-  '01-01':'신정', '03-01':'삼일절', '05-01':'노동절', '05-05':'어린이',
-  '06-06':'현충일', '07-17':'제헌절', '08-15':'광복절', '10-03':'개천절',
-  '10-09':'한글날', '12-25':'성탄절', '03-24':'창립'
+  '01-01':'신정', '03-01':'삼일', '05-01':'노동', '05-05':'어린',
+  '06-06':'현충', '07-17':'제헌', '08-15':'광복', '10-03':'개천',
+  '10-09':'한글', '12-25':'성탄', '03-24':'창립'
 };
 const HOLIDAY_NAMES_DATE = {
   '2026-02-17':'설날','2026-03-02':'대체',
-  '2026-05-24':'석탄일','2026-05-25':'대체','2026-06-03':'임시',
+  '2026-05-24':'석탄','2026-05-25':'대체','2026-06-03':'임시',
   '2026-08-17':'대체','2026-09-25':'추석',
   '2026-10-05':'대체',
   '2027-02-07':'설날','2027-02-09':'대체',
-  '2027-05-13':'석탄일','2027-07-19':'대체','2027-08-16':'대체',
+  '2027-05-13':'석탄','2027-07-19':'대체','2027-08-16':'대체',
   '2027-09-15':'추석','2027-10-04':'대체',
   '2027-10-11':'대체','2027-12-27':'대체',
-  '2028-01-27':'설날','2028-05-02':'석탄일',
+  '2028-01-27':'설날','2028-05-02':'석탄',
   '2028-10-03':'추석','2028-10-05':'대체'
 };
+// 토요일 음력 날짜 (2026~2028)
+const LUNAR_SATURDAY = {'2026-01-03':'11.15','2026-01-10':'11.22','2026-01-17':'11.29','2026-01-24':'12.6','2026-01-31':'12.13','2026-02-07':'12.20','2026-02-14':'12.27','2026-02-21':'1.5','2026-02-28':'1.12','2026-03-07':'1.19','2026-03-14':'1.26','2026-03-21':'2.3','2026-03-28':'2.10','2026-04-04':'2.17','2026-04-11':'2.24','2026-04-18':'3.2','2026-04-25':'3.9','2026-05-02':'3.16','2026-05-09':'3.23','2026-05-16':'3.30','2026-05-23':'4.7','2026-05-30':'4.14','2026-06-06':'4.21','2026-06-13':'4.28','2026-06-20':'5.6','2026-06-27':'5.13','2026-07-04':'5.20','2026-07-11':'5.27','2026-07-18':'6.5','2026-07-25':'6.12','2026-08-01':'6.19','2026-08-08':'6.26','2026-08-15':'7.3','2026-08-22':'7.10','2026-08-29':'7.17','2026-09-05':'7.24','2026-09-12':'8.2','2026-09-19':'8.9','2026-09-26':'8.16','2026-10-03':'8.23','2026-10-10':'8.30','2026-10-17':'9.7','2026-10-24':'9.14','2026-10-31':'9.21','2026-11-07':'9.28','2026-11-14':'10.6','2026-11-21':'10.13','2026-11-28':'10.20','2026-12-05':'10.27','2026-12-12':'11.4','2026-12-19':'11.11','2026-12-26':'11.18','2027-01-02':'11.25','2027-01-09':'12.2','2027-01-16':'12.9','2027-01-23':'12.16','2027-01-30':'12.23','2027-02-06':'12.30','2027-02-13':'1.7','2027-02-20':'1.14','2027-02-27':'1.21','2027-03-06':'1.28','2027-03-13':'2.6','2027-03-20':'2.13','2027-03-27':'2.20','2027-04-03':'2.27','2027-04-10':'3.4','2027-04-17':'3.11','2027-04-24':'3.18','2027-05-01':'3.25','2027-05-08':'4.3','2027-05-15':'4.10','2027-05-22':'4.17','2027-05-29':'4.24','2027-06-05':'5.1','2027-06-12':'5.8','2027-06-19':'5.15','2027-06-26':'5.22','2027-07-03':'5.29','2027-07-10':'6.7','2027-07-17':'6.14','2027-07-24':'6.21','2027-07-31':'6.28','2027-08-07':'7.6','2027-08-14':'7.13','2027-08-21':'7.20','2027-08-28':'7.27','2027-09-04':'8.4','2027-09-11':'8.11','2027-09-18':'8.18','2027-09-25':'8.25','2027-10-02':'9.3','2027-10-09':'9.10','2027-10-16':'9.17','2027-10-23':'9.24','2027-10-30':'10.2','2027-11-06':'10.9','2027-11-13':'10.16','2027-11-20':'10.23','2027-11-27':'10.30','2027-12-04':'11.7','2027-12-11':'11.14','2027-12-18':'11.21','2027-12-25':'11.28','2028-01-01':'12.5','2028-01-08':'12.12','2028-01-15':'12.19','2028-01-22':'12.26','2028-01-29':'1.3','2028-02-05':'1.10','2028-02-12':'1.17','2028-02-19':'1.24','2028-02-26':'2.2','2028-03-04':'2.9','2028-03-11':'2.16','2028-03-18':'2.23','2028-03-25':'2.30','2028-04-01':'3.7','2028-04-08':'3.14','2028-04-15':'3.21','2028-04-22':'3.28','2028-04-29':'4.5','2028-05-06':'4.12','2028-05-13':'4.19','2028-05-20':'4.26','2028-05-27':'5.4','2028-06-03':'5.11','2028-06-10':'5.18','2028-06-17':'5.25','2028-06-24':'윤5.2','2028-07-01':'윤5.9','2028-07-08':'윤5.16','2028-07-15':'윤5.23','2028-07-22':'6.1','2028-07-29':'6.8','2028-08-05':'6.15','2028-08-12':'6.22','2028-08-19':'6.29','2028-08-26':'7.7','2028-09-02':'7.14','2028-09-09':'7.21','2028-09-16':'7.28','2028-09-23':'8.5','2028-09-30':'8.12','2028-10-07':'8.19','2028-10-14':'8.26','2028-10-21':'9.4','2028-10-28':'9.11','2028-11-04':'9.18','2028-11-11':'9.25','2028-11-18':'10.3','2028-11-25':'10.10','2028-12-02':'10.17','2028-12-09':'10.24','2028-12-16':'11.1','2028-12-23':'11.8','2028-12-30':'11.15'};
+function lunarLabel(date){ return LUNAR_SATURDAY[dstr(date)] || null; }
+
 // 그날 공휴일 명칭 반환 (없으면 null)
 function holidayName(date){
   const ds = dstr(date);
@@ -1079,7 +1096,7 @@ function render(){
         let statusHtml = '';
         if(status.type === 'am') statusHtml = `<div class="status am">오전${status.dayNum}</div>`;
         else if(status.type === 'pm') statusHtml = `<div class="status pm">오후${status.dayNum}</div>`;
-        else statusHtml = `<div class="status off">휴무</div>`;
+        else statusHtml = `<div class="status off">고정</div>`;
 
         let numHtml = '';
         if(isOther){
@@ -1117,19 +1134,30 @@ function render(){
           ? `<div class="memo" data-date="${ds}">${escapeHtml(memoText)}</div>`
           : `<div class="memo-add" data-date="${ds}">+메모</div>`;
 
-        // 공휴일 표시: 일요일이거나 공휴일 목록에 있으면 빨간색 + 명칭(3자)
+        // 공휴일 표시: 일요일이거나 공휴일 목록에 있으면 빨간색 + 명칭(2자)
         const holName = holidayName(d);
         const isHolidayCell = holidaySet.has(ds) || d.getDay() === 0 || !!holName;
         const dnumClass = isHolidayCell ? 'dnum holiday' : 'dnum';
-        const holNameHtml = holName ? `<span class="holi-name">${holName}</span>` : '';
+        // 날짜 옆 라벨: 공휴일 명칭 우선, 없고 토요일이면 음력
+        let sideLabel = '';
+        if(holName){
+          sideLabel = `<span class="holi-name">${holName}</span>`;
+        } else if(d.getDay() === 6){
+          const lun = lunarLabel(d);
+          if(lun) sideLabel = `<span class="lunar-name">${lun}</span>`;
+        }
+        // 이모티콘: 둘째 줄(오전/오후 줄)에 표시, status 크기와 동일
         const emojiChar = dayEmojis[ds] || '';
         const emojiHtml = emojiChar ? `<span class="day-emoji">${emojiChar}</span>` : '';
 
+        // 상단 3줄(날짜·상태·순번)을 클릭 영역으로 → 이모티콘 팝업
         html += `<td class="${isToday.trim()}">
           <div class="cell-inner">
-            <div class="${dnumClass}" data-date="${ds}">${dayCounter}${holNameHtml}${emojiHtml}</div>
-            ${statusHtml}
-            ${numHtml}
+            <div class="cell-tap" data-date="${ds}">
+              <div class="${dnumClass}">${dayCounter}${sideLabel}</div>
+              <div class="status-row">${statusHtml}${emojiHtml}</div>
+              ${numHtml}
+            </div>
             ${memoHtml}
           </div>
         </td>`;
@@ -1182,10 +1210,10 @@ document.getElementById('nextBtn').addEventListener('click', goNextMonth);
 
 // 메모 클릭 → 입력
 document.getElementById('calBody').addEventListener('click', (e) => {
-  // 날짜 숫자 클릭 → 이모티콘 선택 팝업
-  const dnumEl = e.target.closest('.dnum');
-  if(dnumEl && dnumEl.dataset.date){
-    openEmojiPicker(dnumEl.dataset.date, e);
+  // 날짜/상태/순번 영역 클릭 → 이모티콘 선택 팝업
+  const tapEl = e.target.closest('.cell-tap');
+  if(tapEl && tapEl.dataset.date){
+    openEmojiPicker(tapEl.dataset.date, e);
     return;
   }
   // 메모 클릭 → 메모 입력
