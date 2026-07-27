@@ -145,11 +145,12 @@
   }
   .status-row{
     display:flex;align-items:center;gap:3px;
-    height:24px;margin-bottom:2px;white-space:nowrap;overflow:visible;
+    height:26px;margin-bottom:2px;white-space:nowrap;overflow:visible;
   }
-  .status-row .status{margin-bottom:0;}
-  /* 순번 영역: 고정 높이 (감차일 2줄까지 수용) */
+  .status-row .status{margin-bottom:0;line-height:1;}
+  /* 순번 영역: 각 줄 18px 고정 (감차일 2줄=36px, 근무일 1줄은 위 정렬) */
   .num-area{min-height:36px;}
+  .num-area > div{height:18px;line-height:18px;}
   /* 기념일+메모 하단 고정 영역 */
   .bottom-area{margin-top:auto;}
   .anniv{
@@ -194,7 +195,7 @@
   .holi-name{font-size:13px;color:var(--red);font-weight:700;vertical-align:middle;}
   /* 토요일 음력 날짜 (파란 계열, 우측) */
   .lunar-name{font-size:12px;color:#5a7fa5;font-weight:600;vertical-align:middle;}
-  .status{font-weight:800;font-size:20px;}
+  .status{font-weight:800;font-size:22px;}
   .status.am{color:var(--green);}
   .status.pm{color:var(--violet);}
   .status.off{color:var(--red);}
@@ -203,15 +204,15 @@
   .num.est{color:var(--amber-strong,#b8860b);}
   .est-mark{font-size:11px;vertical-align:super;color:var(--amber-strong,#b8860b);}
   /* 원래순번(감차 무시, 3칸 이동 기준): 검은색 */
-  .num-base{font-size:15px;color:#1a1a1a;font-weight:800;line-height:1.3;}
+  .num-base{font-size:15px;color:#1a1a1a;font-weight:800;}
   /* 감차로 새로 계산된 순번: 빨간색 */
-  .num-changed{font-size:15px;color:var(--red);font-weight:800;line-height:1.3;}
+  .num-changed{font-size:15px;color:var(--red);font-weight:800;}
   .gamcha{
     font-size:12px;color:#fff;background:var(--red);border-radius:5px;
-    padding:1px 5px;display:inline-block;margin-top:2px;
+    padding:1px 5px;display:inline-block;
   }
   .rest-veh{
-    font-size:13px;color:var(--red);font-weight:800;margin-top:2px;
+    font-size:13px;color:var(--red);font-weight:800;
   }
   /* 3회 운행 표시: 투명 별에 붉은 윤곽선, 순번 글자와 동일 크기 */
   .star3{
@@ -241,18 +242,19 @@
     .panel{padding:8px;border-radius:12px;margin-bottom:8px;}
     .month-nav{margin-bottom:6px;}
     table.cal th{font-size:12px;padding:3px 0;}
-    table.cal td{height:62px;padding:2px 2px;font-size:11px;}
+    table.cal td{height:68px;padding:2px 2px;font-size:11px;}
     .cell-inner{gap:0;}
     .status-row{gap:2px;margin-bottom:1px;}
     .dnum{font-size:14px;}
     .dnum-row{height:18px;margin-bottom:1px;}
-    .status-row{height:18px;margin-bottom:1px;}
-    .num-area{min-height:26px;}
-    .status{font-size:14px;}
-    .num-base{font-size:12.5px;line-height:1.15;}
-    .num-changed{font-size:12.5px;line-height:1.15;}
-    .rest-veh{font-size:10.5px;margin-top:0;}
-    .day-emoji{font-size:14px;}
+    .status-row{height:20px;margin-bottom:1px;}
+    .num-area{min-height:28px;}
+    .num-area > div{height:14px;line-height:14px;}
+    .status{font-size:16px;}
+    .num-base{font-size:12.5px;}
+    .num-changed{font-size:12.5px;}
+    .rest-veh{font-size:10.5px;}
+    .day-emoji{font-size:15px;}
     .holi-name{font-size:11px;}
     .lunar-name{font-size:10px;}
     .memo{font-size:10px;padding-top:1px;}
@@ -264,13 +266,14 @@
   }
   /* 아주 작은 폰 (폭 380px 이하) */
   @media (max-width: 380px){
-    table.cal td{height:56px;font-size:10px;}
+    table.cal td{height:58px;font-size:10px;}
     .dnum-row{height:16px;}
-    .status-row{height:16px;}
-    .num-area{min-height:22px;}
+    .status-row{height:18px;}
+    .num-area{min-height:24px;}
+    .num-area > div{height:12px;line-height:12px;}
     .dnum{font-size:13px;}
-    .status{font-size:13px;}
-    .day-emoji{font-size:13px;}
+    .status{font-size:15px;}
+    .day-emoji{font-size:14px;}
     .num-base,.num-changed{font-size:11.5px;}
     .star3{font-size:11.5px;}
     .rest-veh{font-size:10px;}
