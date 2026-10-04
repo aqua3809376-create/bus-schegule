@@ -175,7 +175,7 @@
   /* 이모티콘: 오전/오후 글씨 위에 겹쳐서 반투명으로 (글씨 가독성 유지) */
   .day-emoji{
     position:absolute;left:2px;top:50%;transform:translateY(-50%);
-    font-size:26px;line-height:1;opacity:0.45;pointer-events:none;z-index:2;
+    font-size:26px;line-height:1;opacity:0.55;pointer-events:none;z-index:2;
   }
   /* 이모티콘 선택 팝업 (화면 중앙 고정) */
   .emoji-picker{
@@ -494,10 +494,10 @@
 
 <script>
 // ===================== 접속 인증 (배포 제한) =====================
-// 비밀번호 규칙: 오늘 날짜(MMDD) + 고정암호.  예) 7월25일 → "0725" + 고정암호
+// 비밀번호 규칙: 고정암호 + 오늘 년월일(YYYYMMDD).  예) 2026-10-04 → "hjy" + "20261004"
 // 소스에는 고정암호 원문 대신 djb2 해시만 저장 → 원문 노출 방지.
 const AUTH_KEY = 'route338_authed_v1';
-const SECRET_HASH = 4245998134; // djb2("juyoung")
+const SECRET_HASH = 193493872; // djb2("hjy")
 
 function djb2(str){
   let h = 5381;
@@ -508,15 +508,15 @@ function djb2(str){
 function isAuthed(){
   try{ return localStorage.getItem(AUTH_KEY) === '1'; }catch(e){ return false; }
 }
-// 입력값 검증: 오늘 MMDD + (입력에서 앞 4자리 뒤 나머지) 형태로 판정
+// 입력값 검증: 고정암호 + 오늘 YYYYMMDD 형태로 판정
 function checkPassword(input){
   const v = (input||'').trim().toLowerCase();
-  // 오늘 날짜 MMDD
+  // 오늘 날짜 YYYYMMDD (8자리)
   const now = new Date();
-  const mmdd = String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
-  // 입력이 MMDD로 시작해야 하고, 뒤 나머지가 고정암호여야 함
-  if(v.slice(0,4) !== mmdd) return false;
-  const secretPart = v.slice(4);
+  const ymd = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
+  // 입력이 YYYYMMDD로 끝나야 하고, 앞 나머지가 고정암호여야 함
+  if(v.slice(-8) !== ymd) return false;
+  const secretPart = v.slice(0, -8);
   return djb2(secretPart) === SECRET_HASH;
 }
 function doUnlock(){
