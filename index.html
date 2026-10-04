@@ -212,7 +212,7 @@
     padding:1px 5px;display:inline-block;
   }
   .rest-veh{
-    font-size:13px;color:var(--red);font-weight:800;
+    font-size:13px;color:var(--red);font-weight:800;white-space:nowrap;
   }
   /* 3회 운행 표시: 투명 별에 붉은 윤곽선, 순번 글자와 동일 크기 */
   .star3{
@@ -1267,7 +1267,7 @@ function render(){
             const restV = restVehiclesToday(d);          // 그날 고정휴무 조의 차량(배차 가능)
             const assigned = restV[numInfo.gamOrder - 1]; // 감N → N번째 빈자리 차량
             // "감N"은 항상 표시. 배차받을 차가 있으면 ", 차량번호"를 덧붙임(없으면 번호만 생략)
-            gamLabel = assigned ? `감${numInfo.gamOrder}, ${assigned}` : `감${numInfo.gamOrder}`;
+            gamLabel = assigned ? `감${numInfo.gamOrder}, ${assigned.slice(-2)}` : `감${numInfo.gamOrder}`;
           } else {
             gamLabel = '감차';
           }
