@@ -709,14 +709,34 @@ function inRange(date, r){
   return date >= s && date <= e;
 }
 
-// 명절 감차 규칙: 설날·추석 연휴. 전날 4대, 당일 5대, 다음날 5대, 대체휴무 4대.
-// 감차 순번은 변동 없음(포인터 정상 진행). 동원도 같은 대수.
-// 2026년: 설날 2/17(당일)/전날 2/16/다음날 2/18, 추석 9/25(당일)/전날 9/24/다음날 9/26, 대체 9/27
+// 명절 감차 규칙: 설날·추석 연휴. 전날 4대, 당일 5대, 다음날 5대.
+// 다음날 뒤가 대체휴무일이면 그날만 4대. 감차 순번은 변동 없음. 동원도 같은 대수.
+// 2026년: 설날 2/17(당일)/전날 2/16/다음날 2/18, 추석 9/25(당일)/전날 9/24/다음날 9/26
+//   ※ 9/27(일)은 대체휴무일이 아니므로 명절 아님 → 일반 일요일 공휴일(3대)로 처리.
 const HOLIDAY_REMOVALS_2026 = {
   '2026-02-16':4, '2026-02-17':5, '2026-02-18':5, // 설 전날·당일·다음날
-  '2026-09-24':4, '2026-09-25':5, '2026-09-26':5, // 추석 전날·당일·다음날
-  '2026-09-27':4  // 추석 대체휴무(일)
+  '2026-09-24':4, '2026-09-25':5, '2026-09-26':5  // 추석 전날·당일·다음날
 };
+
+// ===================== 조 편성 및 배차(감차 차량이 들어갈 고정휴무 자리) =====================
+// 각 조의 고정휴무는 순서대로 정해져 있고 변하지 않음(조 불변).
+// 감차된 차량은 그날 고정휴무인 조의 빈자리에 감차순서(감1,감2,…)대로 배차됨.
+// 매일 한 조씩 고정휴무가 돌아감(6조 순환). 기준: 2026-10-18 = 3조 고정휴무.
+const JO_ROSTER = {
+  1:['2376','2358'], 2:['4834','2377'], 3:['2318','2367'],
+  4:['2338','2390'], 5:['2388'],        6:['2312']
+};
+const JO_ANCHOR = new Date('2026-10-18T00:00:00'); // 이 날 = 3조 고정휴무
+// 그날 고정휴무인 조 번호(1~6)
+function joOffToday(date){
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diff = Math.round((d - JO_ANCHOR) / 86400000);
+  return ((3 - 1 + diff) % 6 + 6) % 6 + 1;
+}
+// 그날 배차 가능한 차량 목록(= 고정휴무 조의 차량들, 조 순서대로)
+function restVehiclesToday(date){
+  return JO_ROSTER[joOffToday(date)] || [];
+}
 
 function getRemoval(date, holidaySet, vacRanges){
   const ds = dstr(date);
@@ -1184,7 +1204,9 @@ function loadVehicleOverrides(){
 }
 
 
-let viewYear = 2026, viewMonth = 6; // 0-indexed month (6 = July)
+// 앱을 열면 오늘이 포함된 달을 표시
+const _today = new Date();
+let viewYear = _today.getFullYear(), viewMonth = _today.getMonth(); // 0-indexed
 
 function render(){
   const company = document.getElementById('company').value;
@@ -1238,9 +1260,17 @@ function render(){
         const removal338 = info338 ? info338.removal : 0;
 
         if(numInfo.off){
-          // 감차: 원래순번(검은색) + 감차N(빨간색)
+          // 감차: 원래순번(검은색) + "감N, 배차차량"(빨간색)
           const baseLine = numInfo.base !== null ? `<div class="num-base">${numInfo.base}번</div>` : '';
-          const gamLabel = numInfo.gamOrder ? `감차${numInfo.gamOrder}` : '감차';
+          let gamLabel;
+          if(numInfo.gamOrder){
+            const restV = restVehiclesToday(d);          // 그날 고정휴무 조의 차량(배차 가능)
+            const assigned = restV[numInfo.gamOrder - 1]; // 감N → N번째 빈자리 차량
+            // "감N"은 항상 표시. 배차받을 차가 있으면 ", 차량번호"를 덧붙임(없으면 번호만 생략)
+            gamLabel = assigned ? `감${numInfo.gamOrder}, ${assigned}` : `감${numInfo.gamOrder}`;
+          } else {
+            gamLabel = '감차';
+          }
           numHtml = `${baseLine}<div class="rest-veh">${gamLabel}</div>`;
         } else if(numInfo.num !== null){
           const changed = numInfo.base !== null && numInfo.base !== numInfo.num;
